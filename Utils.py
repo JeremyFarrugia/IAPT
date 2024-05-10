@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 from torch import cat
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from typing import Optional
 
@@ -28,6 +29,39 @@ def filter_dataset(dataset: MNIST, labels: list, n_samples: Optional[int]) -> No
             idx = np.append(idx, np.where(dataset.targets == label)[0][:n_samples])
     dataset.data = dataset.data[idx]
     dataset.targets = dataset.targets[idx]
+
+def get_data_loaders_from_labels(labels: list, n_samples: Optional[int], batch_size: int, transform: Optional[transforms.Compose] = None) -> tuple:
+    """
+    Get data loaders for the MNIST dataset with specified labels and number of samples
+    """
+    if transform is None:
+        #transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]) # Normalize the data for better training
+        transform = transforms.Compose([transforms.ToTensor()])
+    
+    torch.manual_seed(42)
+    
+    train_dataset = MNIST(root="./data", train=True, download=True, transform=transform)
+    test_dataset = MNIST(root="./data", train=False, download=True, transform=transform)
+    
+    filter_dataset(train_dataset, labels, n_samples)
+    filter_dataset(test_dataset, labels, n_samples)
+    
+    print("Train dataset size:", len(train_dataset))
+    print(train_dataset.targets)
+    print(test_dataset.targets)
+    
+    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_data_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    print("Train data loader size:", len(train_data_loader))
+    print("Test data loader size:", len(test_data_loader))
+    print("Train data loader batch size:", train_data_loader.batch_size)
+    print("Test data loader batch size:", test_data_loader.batch_size)
+    print("Train data loader sampler:", train_data_loader.sampler)
+    print("Test data loader sampler:", test_data_loader.sampler)
+    print("Train data:", train_data_loader.dataset)
+    print("Test data:", test_data_loader.dataset)
+    
+    return train_data_loader, test_data_loader
 
 def train_model(model: Module, train_loader: DataLoader, epochs: int, learning_rate: float):
     """
@@ -100,6 +134,7 @@ def evaluate_model(model: Module, test_loader: DataLoader) -> float:
             print(labels)
 
             pred = outputs.round()
+            print(pred)
             correct += pred.eq(labels.view_as(pred)).sum().item()
             total += labels.size(0)
 
@@ -111,3 +146,20 @@ def evaluate_model(model: Module, test_loader: DataLoader) -> float:
         print(f"Accuracy: {correct / total}")
         return correct / total
     
+def visualise_model_architecture(model: Module):
+    """
+    Visualise the architecture of the model
+    """
+    
+    print(model)
+    
+def visualise_loss_history(model: Module):
+    """
+    Visualise the loss history of the model
+    """
+    
+    plt.plot(model.loss_history)
+    plt.title("Training Convergence")
+    plt.xlabel("Training Iterations")
+    plt.ylabel("Loss")
+    plt.show()
