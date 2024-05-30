@@ -9,10 +9,9 @@ class ClassicalNetwork(Module):
     
     def __init__(self):
         super(ClassicalNetwork, self).__init__()
-        self.fc1 = Linear(4, 24)
-        self.fc2 = Linear(24, 4)
-        self.fc3 = Linear(4, 2)
-        self.fc4 = Linear(2, 1)
+        self.fc1 = Linear(4, 12)
+        self.fc2 = Linear(12, 2)
+        self.fc3 = Linear(2, 1)
 
         self.loss_function = torch.nn.BCELoss()
 
@@ -22,8 +21,7 @@ class ClassicalNetwork(Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = torch.relu(self.fc3(x))
-        x = torch.sigmoid(self.fc4(x))
+        x = torch.sigmoid(self.fc3(x))
         return x
     
     def predict(self, x: torch.Tensor) -> torch.Tensor:

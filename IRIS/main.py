@@ -1,4 +1,5 @@
 from classical_network import ClassicalNetwork
+from hybrid_network import create_qnn, HybridNetwork
 import torch
 import Utils
 
@@ -14,3 +15,7 @@ Utils.visualise_loss_history(classical_network)
 
 print(f"Accuracy of classical network: {accuracy * 100}%")
 print(f"Loss of classical network: {loss}")
+print(f"Model parameters: {Utils.parameter_count(classical_network)}")
+
+Utils.save_loss_history(classical_network, "classical_loss_history")
+Utils.save_model(classical_network, "classical_model.pth")

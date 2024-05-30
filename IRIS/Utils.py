@@ -29,7 +29,7 @@ def load_iris_dataset(binary_data: bool = True) -> list:
     if binary_data:
         data = [row for row in data if row[-1] != 2]
         
-    print(data)
+    #print(data)
     return data
 
 def transform_iris_data(data: list) -> tuple:
@@ -112,17 +112,17 @@ def evaluate_model(model: Module, test_loader: DataLoader) -> tuple[float, float
             if len(outputs.shape) == 1:
                 outputs = outputs.reshape(1, *outputs.shape)
 
-            print("----")
+            """print("----")
             print("Outputs: ")
             print(outputs)
             print("----")
             print("Labels: ")
-            print(labels)
+            print(labels)"""
 
             pred = outputs.round()
-            print("----")
+            """print("----")
             print("Predictions: ")
-            print(pred)
+            print(pred)"""
             correct += pred.eq(labels.view_as(pred)).sum().item()
             total += labels.size(0)
 
@@ -141,5 +141,57 @@ def visualise_loss_history(model: Module):
     plt.plot(model.loss_history)
     plt.title("Training Convergence")
     plt.xlabel("Training Iterations")
-    plt.ylabel("Loss")
+    plt.grid()
+    plt.ylabel("BCE Loss")
     plt.show()
+
+def visualise_loss_history_multiple(loss_histories: list[list], labels: list[str]):
+    """
+    Visualise the loss history of multiple models
+    """
+    
+    for loss_history in loss_histories:
+        plt.plot(loss_history)
+    plt.title("Training Convergence")
+    plt.xlabel("Training Iterations")
+    # Include major gridlines
+    plt.grid(visible=True, which='major', color='#666666', linestyle='-')
+    # Customize minor gridlines
+    plt.minorticks_on()
+    plt.grid(visible=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+    plt.ylabel("BCE Loss")
+    plt.legend(labels)
+    plt.show()
+
+def parameter_count(model: Module) -> int:
+    """
+    Get the number of parameters in the model
+    """
+    
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+def save_model(model: Module, path: str):
+    """
+    Save the model to the specified path
+    """
+    torch.save(model.state_dict(), path)
+
+def load_model(model: Module, path: str):
+    """
+    Load the model from the specified path
+    """
+    model.load_state_dict(torch.load(path))
+    model.eval()
+    model.trained = True
+
+def save_loss_history(model: Module, path: str):
+    """
+    Save the loss history of the model to the specified path
+    """
+    np.save(path, model.loss_history)
+
+def load_loss_history(model: Module, path: str) -> list:
+    """
+    Load the loss history of the model from the specified path
+    """
+    return np.load(path, allow_pickle=True).tolist()
