@@ -50,3 +50,6 @@ print(f"Accuracy of classical network: {accuracy * 100}%")
 
 # Plot loss convergence
 Utils.visualise_loss_history(classical_network)
+
+# Save loss history
+np.save("mnist_loss_history.npy", np.array(classical_network.loss_history))

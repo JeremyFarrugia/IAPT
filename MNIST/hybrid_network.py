@@ -16,10 +16,17 @@ from torch.nn import (
     BCELoss,
 )
 
-def create_qnn():
-    feature_map = ZZFeatureMap(2)
-    ansatz = RealAmplitudes(2, reps=1)
-    qc = QuantumCircuit(2)
+def create_qnn(num_qubits: int = 4, feature_map_depth: int = 2, ansatz_depth: int = 2) -> EstimatorQNN:
+    """
+    Create a quantum neural network with the specified number of qubits, feature map depth, and ansatz depth
+    ZZFeatureMap and RealAmplitudes are used for the feature map and ansatz, respectively
+    Both are set to full entanglement
+    """
+    
+
+    feature_map = ZZFeatureMap(num_qubits, reps=feature_map_depth, entanglement="full")
+    ansatz = RealAmplitudes(num_qubits, reps=ansatz_depth, entanglement="full")
+    qc = QuantumCircuit(num_qubits)
     qc.compose(feature_map, inplace=True)
     qc.compose(ansatz, inplace=True)
 
@@ -37,8 +44,8 @@ class HybridNetwork(Module):
         self.conv1 = Conv2d(1, 2, kernel_size=5)
         self.conv2 = Conv2d(2, 16, kernel_size=5)
         self.dropout = Dropout2d()
-        self.fc1 = Linear(256, 64)
-        self.fc2 = Linear(64, 2)
+        self.fc1 = Linear(256, 16)
+        self.fc2 = Linear(16, 2)
         self.qnn = TorchConnector(qnn)
         self.fc3 = Linear(1, 1)
         
@@ -49,13 +56,13 @@ class HybridNetwork(Module):
 
     def forward(self, x):
         x = torch.relu(self.conv1(x))
-        x = torch.max_pool2d(x, 2)
+        x = torch.max_pool2d(x, kernel_size=2)
         x = torch.relu(self.conv2(x))
-        x = torch.max_pool2d(x, 2)
+        x = torch.max_pool2d(x, kernel_size=2)
         x = self.dropout(x)
         x = x.view(x.shape[0], -1)
         x = torch.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = torch.relu(self.fc2(x))
         x = self.qnn(x)
         x = torch.sigmoid(self.fc3(x))
         return x
@@ -65,10 +72,10 @@ if __name__ == "__main__":
     epochs = 25
     learning_rate = 0.001
     batch_size = 10
-    n_samples = 250
+    n_samples = 50
     train_loader, test_loader = Utils.get_data_loaders_from_labels([0, 1], n_samples, batch_size)
     
-    qnn = create_qnn()
+    qnn = create_qnn(num_qubits=2, feature_map_depth=2, ansatz_depth=3)
     print("Observables:", qnn.observables)
     print("Output shape:", qnn.output_shape)
     print("Number of input features:", qnn.num_inputs)
@@ -84,4 +91,10 @@ if __name__ == "__main__":
     
     accuracy = Utils.evaluate_model(model, test_loader)
     print(f"Accuracy of hybrid network: {accuracy * 100}%")
+
+    Utils.visualise_loss_history(model)
+
+    # Save loss history
+    import numpy as np
+    np.save("mnist_qnn_loss_history.npy", model.loss_history)
     

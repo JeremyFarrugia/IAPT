@@ -13,8 +13,8 @@ class ClassicalNetwork(Module):
         self.conv1 = Conv2d(1, 2, kernel_size=5)
         self.conv2 = Conv2d(2, 16, kernel_size=5)
         self.dropout = Dropout2d()
-        self.fc1 = Linear(256, 64)
-        self.fc2 = Linear(64, 2)
+        self.fc1 = Linear(256, 16)
+        self.fc2 = Linear(16, 2)
         self.fc3 = Linear(2, 1)
 
         self.loss_function = torch.nn.BCELoss()
