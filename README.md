@@ -1,5 +1,5 @@
 # Entangled Neural Networks (ENNs)
-
+![Banner](githubAssets/repo_banner.png)
 ## What is this?
 
 Assigned as the project for the ARI2201 unit, Entangled Neural Networks are an attempt at implementing quantum computing principles into traditional Artificial Neural Networks (ANNs).
